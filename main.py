@@ -1,6 +1,8 @@
 import streamlit as st
 import datetime
 date_actuelle = datetime.datetime.now()
+from replace_word import replace_in_word, dictionary_word
+filename_word = "data/TROD_angine_docx.docx"
 
 
 def compute_isaac_score(temperature, toux, adenopathie, amygale, age):
@@ -34,6 +36,26 @@ def print_tracabilite_fiche_patient():
     st.session_state['num_lot'] = st.text_input('Numéro de lot du TROD angine', '123ABC')
     st.session_state['date_peremption'] = st.date_input('Date de péremption', datetime.date(2025, 1, 1))
     st.session_state['test_results'] = st.selectbox('Résultat du test', ('Positif', 'Négatif', 'Non concluant (y compris impossibilité de réaliser le test)'))
+    st.session_state['orientation_medecin'] = st.selectbox('Orientation vers un médecin', ('Oui', 'Non'))
+    st.session_state['delivrance_antibio'] = st.selectbox('Délivrance d’antibiotiques selon prescription confitionnelle', ('Oui', 'Non'))
+    st.session_state['traitement_symptomatique'] = st.selectbox('Traitement symptomatique', ('Oui', 'Non'))
+
+    if st.button('Generate PDF file'):
+        dictionary_word['nom_pharmacien'] = st.session_state['nom_pharmacien']
+        dictionary_word['date_heure_test'] = str(date_actuelle)
+        dictionary_word['nom_patient'] = st.session_state['name'] + ' ' + st.session_state['surname']
+        dictionary_word['age_patient'] = str(st.session_state['age'])
+        dictionary_word['p_ordo'] = st.session_state['is_ordonnance']
+        dictionary_word['score_mac'] = str(st.session_state['isaac_score'])
+        dictionary_word['1score'] = str(st.session_state['temperature'] * 1)
+        dictionary_word['2score'] = str(st.session_state['absence_de_toux'] * 1)
+        dictionary_word['3score'] = str(st.session_state['adenopathie'] * 1)
+        dictionary_word['4score'] = str(st.session_state['amygale'] * 1)
+        dictionary_word['5score'] = str(st.session_state['gorge'] * 1)
+        dictionary_word['resultattest'] = st.session_state['test_results']
+        dictionary_word['orientation_med'] = st.session_state['orientation_medecin']
+        dictionary_word['date_val'] = str(date_actuelle)
+        replace_in_word(filename_word, dictionary_word)
 
 st.title('PoC improve pharmacie efficiency')
 st.divider()
@@ -74,5 +96,3 @@ if st.button('Valider les informations préliminaires') or st.session_state['pre
                 st.text('Test TROD non réalisable :(')
     elif st.session_state['is_ordonnance'] == 'Oui':
         print_tracabilite_fiche_patient()
-
-
